@@ -16,9 +16,69 @@
 #    You should have received a copy of the GNU General Public License
 #    along with python-nikeplus-2013.  If not, see <http://www.gnu.org/licenses/>.
 
+import json, urllib, urllib2, logging, cookielib, pprint
+
 """ Access and get data from the nikeplus system (using the 2013 API). """
 class NikePlus:
-    
-    def __init__(self, username, password):
-        pass
 
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Host": "developer.nike.com",
+        "Origin": "https://developer.nike.com",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_3) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.65 Safari/537.31",
+        "Accept": "*/*",
+        "Accept-Charset": "ISO-8859-1,utf-8;q=0.7,*;q=0.3",
+        "Accept-Language": "en-GB,en-US;q=0.8,en;q=0.6",
+    }
+    
+    def __init__(self):
+        self.logger = logging.getLogger("python-nikeplus-2013")
+
+        """ Set up a cookies-enabled opener globally. """
+        cj = cookielib.LWPCookieJar()
+        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+        urllib2.install_opener(opener)
+
+    def login(self, email, password):
+        """ Login to the developer area to get the authentication cookie. """
+
+        self.email = email
+        self.password = password
+
+        url = "https://developer.nike.com/login"
+
+        body = urllib.urlencode({"continue_url": "/categories", "email": self.email, "password": self.password})
+        req = urllib2.Request(url, body, self.headers)
+        req.get_method = lambda: "POST"
+        urllib2.urlopen(req)
+
+        # Result is that we have a logged-in cookie in our jar now.
+
+    def get_token(self):
+        """ Get a API token using a user's credentials. """
+
+        url = "https://developer.nike.com/request/"
+
+        """ API call accepts a urlencoded string with a single key "data" and a JSON string as the value, as the body of the POST request. """
+        body = "data=%7B%22method%22%3A%22POST%22%2C%22url%22%3A%22%25base_url%25%2Fnsl%2Fv2.0%2Fuser%2Flogin%3Fformat%3Djson%26app%3D%2525appid%2525%26client_id%3D%2525client_id%2525%26client_secret%3D%2525client_secret%2525%22%2C%22headers%22%3A%7B%22appid%22%3A%22%25appid%25%22%2C%22Accept%22%3A%22application%2Fjson%22%2C%22Content-Type%22%3A%22application%2Fx-www-form-urlencoded%22%7D%2C%22body%22%3A%22email%3D{0}%26password%3D{1}%22%7D".format(urllib.quote(self.email), urllib.quote(self.password))
+
+        """ Make the HTTP request. """
+        req = urllib2.Request(url, body, self.headers)
+        req.get_method = lambda: "POST"
+        f = urllib2.urlopen(req)
+        resp = f.read()
+
+        response = json.loads(resp)
+        self.logger.debug("get_token: received response: {0}".format(pprint.pformat(response)))
+
+        body = json.loads(response['body']) # double JSON encoded. seriously.
+        self.logger.debug("get_token: received response body: {0}".format(pprint.pformat(body)))
+
+        token = body['access_token']
+        expires_in = body['expires_in']
+        
+        self.logger.debug("Successfully got token: {0}, expires in: {1}".format(token, expires_in))
+        self.token = token
+        return token
+ 
