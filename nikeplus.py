@@ -33,6 +33,7 @@ class NikePlus:
     }
     
     def __init__(self):
+        """ Set up the logger in a new channel. """
         self.logger = logging.getLogger("python-nikeplus-2013")
 
         """ Set up a cookies-enabled opener globally. """
@@ -52,11 +53,10 @@ class NikePlus:
         req = urllib2.Request(url, body, self.headers)
         req.get_method = lambda: "POST"
         urllib2.urlopen(req)
-
         # Result is that we have a logged-in cookie in our jar now.
 
     def get_token(self):
-        """ Get a API token using a user's credentials. """
+        """ Get a API token using a user's credentials and store it in this object. """
 
         url = "https://developer.nike.com/request/"
 
@@ -81,4 +81,10 @@ class NikePlus:
         self.logger.debug("Successfully got token: {0}, expires in: {1}".format(token, expires_in))
         self.token = token
         return token
- 
+
+        
+
+
+
+
+
