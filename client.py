@@ -16,15 +16,14 @@
 #    You should have received a copy of the GNU General Public License
 #    along with python-nikeplus-2013.  If not, see <http://www.gnu.org/licenses/>.
 
-import argparse, getpass, logging, nikeplus
+import argparse, getpass, logging, nikeplus, pprint
 
 """ A simple command-line client to demontrate usage of the library. """
 
 logging.basicConfig(level = logging.DEBUG)
 
 parser = argparse.ArgumentParser(description = "Use the Nike+ API")
-parser.add_argument('email', type = str, help = "E-mail address of the user")
-parser.add_argument('action', type = str, help = "Action to perform")
+parser.add_argument('email', type = str, help = "E-mail address of the user in the Nike+ system")
 
 args = vars(parser.parse_args())
 password = getpass.getpass()
@@ -32,4 +31,10 @@ password = getpass.getpass()
 nikeplus = nikeplus.NikePlus()
 nikeplus.login(args['email'], password)
 nikeplus.get_token()
+
+activities = nikeplus.get_activities()
+for activity in activities:
+    activity_id = activity['activityId']
+    logging.debug("activity id: {0}".format(activity_id))
+    logging.debug("activity_details: {0}".format(pprint.pformat(nikeplus.get_activity_detail(activity_id))))
 
