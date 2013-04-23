@@ -36,10 +36,9 @@ class NikePlus:
         """ Set up the logger in a new channel. """
         self.logger = logging.getLogger("python-nikeplus-2013")
 
-        """ Set up a cookies-enabled opener globally. """
+        """ Set up a cookies-enabled opener locally. """
         cj = cookielib.LWPCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
-        urllib2.install_opener(opener)
+        self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
 
     def login(self, email, password):
         """ Login to the developer area to get the authentication cookie. """
@@ -52,7 +51,7 @@ class NikePlus:
         body = urllib.urlencode({"continue_url": "/categories", "email": self.email, "password": self.password})
         req = urllib2.Request(url, body, self.headers)
         req.get_method = lambda: "POST"
-        urllib2.urlopen(req)
+        self.opener.open(req)
         time.sleep(1)
         # Result is that we have a logged-in cookie in our jar now.
 
@@ -67,7 +66,7 @@ class NikePlus:
         """ Make the HTTP request. """
         req = urllib2.Request(url, body, self.headers)
         req.get_method = lambda: "POST"
-        f = urllib2.urlopen(req)
+        f = self.opener.open(req)
         resp = f.read()
         time.sleep(1)
 
@@ -98,7 +97,7 @@ class NikePlus:
 
         req = urllib2.Request(url, body)
         req.get_method = lambda: "POST"
-        f = urllib2.urlopen(req)
+        f = self.opener.open(req)
         resp = f.read()
         time.sleep(1)
         self.logger.debug("get_activities: received resp: {0}".format(pprint.pformat(resp)))
@@ -121,7 +120,7 @@ class NikePlus:
 
         req = urllib2.Request(url, body)
         req.get_method = lambda: "POST"
-        f = urllib2.urlopen(req)
+        f = self.opener.open(req)
         resp = f.read()
         time.sleep(1)
         self.logger.debug("get_activities: received resp: {0}".format(pprint.pformat(resp)))
