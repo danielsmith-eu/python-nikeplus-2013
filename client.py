@@ -16,25 +16,36 @@
 #    You should have received a copy of the GNU General Public License
 #    along with python-nikeplus-2013.  If not, see <http://www.gnu.org/licenses/>.
 
-import argparse, getpass, logging, nikeplus, pprint
+import argparse, getpass, logging, nikeplus, pprint, datetime, sys
 
 """ A simple command-line client to demontrate usage of the library. """
 
-logging.basicConfig(level = logging.DEBUG)
-
 parser = argparse.ArgumentParser(description = "Use the Nike+ API")
 parser.add_argument('email', type = str, help = "E-mail address of the user in the Nike+ system")
+parser.add_argument('start_date', type = str, help = "Start date, like: 2013-03-20")
+parser.add_argument('end_date', type = str, help = "End date, like: 2013-03-21")
+parser.add_argument('--debug', default = False, action="store_true", help = "Turn on verbose debugging")
 
 args = vars(parser.parse_args())
+
+# Count the number of days, so we know how many days to request, also validates the date format
+start_date = datetime.datetime.strptime(args['start_date'], "%Y-%m-%d")
+end_date = datetime.datetime.strptime(args['end_date'], "%Y-%m-%d")
+days = (end_date - start_date).days + 1
+
 password = getpass.getpass()
+
+if args['debug']:
+    logging.basicConfig(level = logging.DEBUG)
 
 nikeplus = nikeplus.NikePlus()
 nikeplus.login(args['email'], password)
 nikeplus.get_token()
 
-activities = nikeplus.get_activities()
+activities = nikeplus.get_activities(args['start_date'], args['end_date'], count = days)
 for activity in activities:
     activity_id = activity['activityId']
     logging.debug("activity id: {0}".format(activity_id))
     logging.debug("activity_details: {0}".format(pprint.pformat(nikeplus.get_activity_detail(activity_id))))
+    print nikeplus.get_activity_detail(activity_id)
 

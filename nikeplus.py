@@ -16,7 +16,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with python-nikeplus-2013.  If not, see <http://www.gnu.org/licenses/>.
 
-import json, urllib, urllib2, logging, cookielib, time, pprint
+import json, urllib, urllib2, logging, cookielib, time, pprint, datetime
 
 """ Access and get data from the nikeplus system (using the 2013 API). """
 class NikePlus:
@@ -83,15 +83,10 @@ class NikePlus:
         self.token = token
         return token
 
-    def get_activities(self):
+    def get_activities(self, start_date, end_date, offset = 1, count = 1):
         """ Get the list of activity IDs for this user. """
 
         url = "https://developer.nike.com/request/"
-
-        offset = 1
-        count = 5
-        start_date = "2013-01-01"
-        end_date = "2013-04-20"
 
         body = "data=%7B%22method%22%3A%22GET%22%2C%22url%22%3A%22https%3A%2F%2Fapi.nike.com%2Fme%2Fsport%2Factivities%3Faccess_token%3D{0}%26offset%3D{1}%26count%3D{2}%26startDate%3D{3}%26endDate%3D{4}%22%2C%22headers%22%3A%7B%22appid%22%3A%22%25appid%25%22%2C%22Accept%22%3A%22application%2Fjson%22%7D%2C%22body%22%3A%22%22%2C%22environment%22%3A%22prod%22%7D".format(self.token, offset, count, start_date, end_date)
 
