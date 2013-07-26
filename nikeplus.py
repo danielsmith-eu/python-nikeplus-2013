@@ -83,27 +83,36 @@ class NikePlus:
         self.token = token
         return token
 
-    def get_activities(self, start_date, end_date, offset = 1, count = 1):
+    def get_activities(self, start_date, end_date, offset = 1):
         """ Get the list of activity IDs for this user. """
+        start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+        end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
 
         url = "https://developer.nike.com/request/"
+        count = 1
 
-        body = "data=%7B%22method%22%3A%22GET%22%2C%22url%22%3A%22https%3A%2F%2Fapi.nike.com%2Fme%2Fsport%2Factivities%3Faccess_token%3D{0}%26offset%3D{1}%26count%3D{2}%26startDate%3D{3}%26endDate%3D{4}%22%2C%22headers%22%3A%7B%22appid%22%3A%22%25appid%25%22%2C%22Accept%22%3A%22application%2Fjson%22%7D%2C%22body%22%3A%22%22%2C%22environment%22%3A%22prod%22%7D".format(self.token, offset, count, start_date, end_date)
+        data = []
+        for n in range(int((end_date - start_date).days + 1)):
+            this_datetime = start_date + datetime.timedelta(n)
+            this_date = this_datetime.strftime("%Y-%m-%d")
 
-        req = urllib2.Request(url, body)
-        req.get_method = lambda: "POST"
-        f = self.opener.open(req)
-        resp = f.read()
-        time.sleep(1)
-        self.logger.debug("get_activities: received resp: {0}".format(pprint.pformat(resp)))
-        
-        response = json.loads(resp)
-        self.logger.debug("get_activities: received response: {0}".format(pprint.pformat(response)))
+            body = "data=%7B%22method%22%3A%22GET%22%2C%22url%22%3A%22https%3A%2F%2Fapi.nike.com%2Fme%2Fsport%2Factivities%3Faccess_token%3D{0}%26offset%3D{1}%26count%3D{2}%26startDate%3D{3}%26endDate%3D{4}%22%2C%22headers%22%3A%7B%22appid%22%3A%22%25appid%25%22%2C%22Accept%22%3A%22application%2Fjson%22%7D%2C%22body%22%3A%22%22%2C%22environment%22%3A%22prod%22%7D".format(self.token, offset, count, this_date, this_date)
 
-        body = json.loads(response['body']) # double JSON encoded. seriously.
-        self.logger.debug("get_activities: received response body: {0}".format(pprint.pformat(body)))
+            req = urllib2.Request(url, body)
+            req.get_method = lambda: "POST"
+            f = self.opener.open(req)
+            resp = f.read()
+            time.sleep(1)
+            self.logger.debug("get_activities: received resp: {0}".format(pprint.pformat(resp)))
+            
+            response = json.loads(resp)
+            self.logger.debug("get_activities: received response: {0}".format(pprint.pformat(response)))
 
-        data = body['data']
+            body = json.loads(response['body']) # double JSON encoded. seriously.
+            self.logger.debug("get_activities: received response body: {0}".format(pprint.pformat(body)))
+
+            data.append(body['data'])
+
         return data
 
     def get_activity_detail(self, activity_id):

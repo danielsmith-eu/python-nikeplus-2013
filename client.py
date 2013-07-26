@@ -16,7 +16,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with python-nikeplus-2013.  If not, see <http://www.gnu.org/licenses/>.
 
-import argparse, getpass, logging, nikeplus, pprint, datetime, sys
+import argparse, getpass, logging, nikeplus, pprint, json
 
 """ A simple command-line client to demontrate usage of the library. """
 
@@ -27,12 +27,6 @@ parser.add_argument('end_date', type = str, help = "End date, like: 2013-03-21")
 parser.add_argument('--debug', default = False, action="store_true", help = "Turn on verbose debugging")
 
 args = vars(parser.parse_args())
-
-# Count the number of days, so we know how many days to request, also validates the date format
-start_date = datetime.datetime.strptime(args['start_date'], "%Y-%m-%d")
-end_date = datetime.datetime.strptime(args['end_date'], "%Y-%m-%d")
-days = (end_date - start_date).days + 1
-
 password = getpass.getpass()
 
 if args['debug']:
@@ -42,10 +36,16 @@ nikeplus = nikeplus.NikePlus()
 nikeplus.login(args['email'], password)
 nikeplus.get_token()
 
-activities = nikeplus.get_activities(args['start_date'], args['end_date'], count = days)
-for activity in activities:
-    activity_id = activity['activityId']
-    logging.debug("activity id: {0}".format(activity_id))
-    logging.debug("activity_details: {0}".format(pprint.pformat(nikeplus.get_activity_detail(activity_id))))
-    print nikeplus.get_activity_detail(activity_id)
+activities = nikeplus.get_activities(args['start_date'], args['end_date'])
+activities_all = []
+for activity_list in activities:
+    if type(activity_list) != type([]):
+        activity_list = [activity_list]
+    for activity in activity_list:
+        activity_id = activity['activityId']
+        logging.debug("activity id: {0}".format(activity_id))
+        logging.debug("activity_details: {0}".format(pprint.pformat(nikeplus.get_activity_detail(activity_id))))
+        activities_all.append(nikeplus.get_activity_detail(activity_id))
+
+print json.dumps(activities_all, indent=2)
 
