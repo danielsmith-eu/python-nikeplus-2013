@@ -45,7 +45,9 @@ for activity_list in activities:
         activity_id = activity['activityId']
         logging.debug("activity id: {0}".format(activity_id))
         logging.debug("activity_details: {0}".format(pprint.pformat(nikeplus.get_activity_detail(activity_id))))
+        logging.debug("gps_data: {0}".format(pprint.pformat(nikeplus.get_gps_data(activity_id))))
         activities_all.append(nikeplus.get_activity_detail(activity_id))
+        activities_all.append(nikeplus.get_gps_data(activity_id))
 
 print json.dumps(activities_all, indent=2)
 
